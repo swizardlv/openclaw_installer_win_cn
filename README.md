@@ -19,7 +19,7 @@
 点击 Code → Download ZIP，或克隆本仓库：
 
 ```bash
-git clone https://github.com/your-repo/openclaw_installer_win_cn.git
+git clone https://github.com/swizardlv/openclaw_installer_win_cn.git
 cd openclaw_installer_win_cn
 ```
 
