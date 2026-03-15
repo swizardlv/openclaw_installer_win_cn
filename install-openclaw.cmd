@@ -39,20 +39,40 @@ if exist "%ProgramFiles%\WindowsApps\Microsoft.DesktopAppInstaller*" (
 )
 
 :: ============================================
-:: 第二步：安装 Node.js
+:: 第二步：安装 Node.js (需要 24 以上)
 :: ============================================
-echo [2/7] 正在安装 Node.js...
+echo [2/7] 正在安装 Node.js (需要 24+)...
+
+set NEED_NODE_INSTALL=1
 
 where node >nul 2>&1
 if %errorlevel% equ 0 (
-    echo   Node.js 已安装，跳过
-    for /f "tokens=*" %%i in ('where node') do set NODE_PATH=%%i
-    echo   版本: !NODE_PATH!
-) else (
-    winget install OpenJS.NodeJS --silent --accept-package-agreements --accept-source-agreements
-    echo   Node.js 安装完成
+    :: 检查 Node.js 版本
+    for /f "tokens=*" %%i in ('node --version') do set NODE_VERSION=%%i
+    echo   当前版本: !NODE_VERSION!
+
+    :: 提取版本号主版本
+    for /f "tokens=1 delims=." %%a in ("!NODE_VERSION!") do set NODE_MAJOR=%%a
+
+    if !NODE_MAJOR! GEQ 24 (
+        echo   Node.js 版本 >= 24，满足要求
+        set NEED_NODE_INSTALL=0
+    ) else (
+        echo   Node.js 版本低于 24，正在卸载...
+        winget uninstall OpenJS.NodeJS --silent
+    )
+)
+
+if !NEED_NODE_INSTALL!==1 (
+    echo   正在安装 Node.js 24+ ...
+    winget install OpenJS.NodeJS --version 24.0.0 --silent --accept-package-agreements --accept-source-agreements
+    if %errorlevel% neq 0 (
+        echo   指定版本安装失败，尝试安装最新版...
+        winget install OpenJS.NodeJS --silent --accept-package-agreements --accept-source-agreements
+    )
     :: 刷新环境变量
     set PATH=%PATH%;%ProgramFiles%\nodejs
+    echo   Node.js 安装完成
 )
 
 :: ============================================
